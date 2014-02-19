@@ -1,4 +1,5 @@
 import java.util.Random;
+import java.lang.Math;
 
 public class MiniMaxAI extends AIModule
 {
@@ -7,41 +8,75 @@ public class MiniMaxAI extends AIModule
 	/// Used as a helper when picking random moves.
 	private int[] moves;
 
+	private int maxDepth = 6;
+
+	private int numGames = 10;
+
 	/// Simulates random games and chooses the move that leads to the highest expected value.
 	@Override
 	public void getNextMove(final GameStateModule state)
 	{
-		// Set up the legal moves buffer.  We use only one buffer repeatedly to
-		// avoid needless memory allocations.
-		moves = new int[state.getWidth()];
-
-		// Default to choosing the first column (should be fixed after a few rounds)
 		chosenMove = 0;
+		chosenMove = miniMax(state);
+	}
 
-		// Cache our index.
-		final int ourPlayer = state.getActivePlayer();
+	public int miniMax(final GameStateModule state)
+	{
+		final GameStateModule game = state.copy();
+		int max = -Integer.MAX_VALUE;
 
-		// Create value array and set all illegal moves to minimum value.
-		// This will be filled in using results from random games:
-		// +1 point for each win
-		// +0 point for each draw
-		// -1 point for each loss.
-		// We also initialize all illegal moves to -Integer.MAX_VALUE.  We could also
-		// have used Integer.MIN_VALUE, but this is a "weird number" because
-		// -Integer.MIN_VALUE == Integer.MIN_VALUE.
-		int[] values = new int[state.getWidth()];
-		for(int i = 0; i < values.length; ++i)
-			if(!state.canMakeMove(i))
-				values[i] = -Integer.MAX_VALUE;
+		//find the maximum utility out of all the possible moves
+		for (int action = 0; action < state.getWidth(); action++)
+			if(minValue(game, action) > max)
+				max = minValue(game, action);
 
-		// Start simulating games! Continue until told to stop.
-		while(!terminate)
-		{
-			final int move = getMove(state);
-			state.makeMove(move);
-			updateGuess(ourPlayer, playRandomGame(state), values, move);
-			state.unMakeMove();
-		}
+		return max;
+		
+	}
+
+	public int minValue(final GameStateModule state, int action)
+	{
+		final GameStateModule game = state.copy();
+
+		game.makeMove(action);
+		if (atTerminal(game))
+			return utility(game);
+		int v = Integer.MAX_VALUE;
+		for(int action = 0; action < state.getWidth(); action++)
+			if (game.canMakeMove(action))
+				v = ((maxValue(game, action) < v) ? maxValue(game, action) : v);
+		return v;
+				
+
+	}
+
+	public int maxValue(final GameStateModule state, int action)
+	{
+		final GameStateModule game = state.copy();
+		game.makeMove(action);
+		if (atTerminal(game))
+			return utility(game);
+
+		int v = -Integer.MAX_VALUE;
+		for(int action = 0; action < state.getWidth(); action++)
+			if (game.canMakeMove(action))
+				v = ((minValue(game, action) > v) ? minValue(game, action) : v);
+		return v;
+
+	}
+
+	public boolean atTerminal(final GameStateModule state)
+	{
+		return (state.getCoins() == maxDepth);
+	}
+
+	public int utility(final GameStateModule state)
+	{
+		int count = 0;
+		for(int i = 0; i< numGames; i++)
+			if(playRandomGame(state) == ourPlayer)
+				count++;
+		return(Math.floor(count / numGames));
 	}
 
 	/// Returns a random legal move in a given state.
