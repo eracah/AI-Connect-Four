@@ -1,20 +1,6 @@
 import java.util.Random;
-/// A sample AI that uses a Monte Carlo approach to play Connect Four.
 
-/**
- * A sampleAI that uses a Monte Carlo approach to play Connect Four.  Unlike the heuristic
- * searches and minimax approaches we've covered in class, the Monte Carlo player plays
- * Connect Four by simulating purely random games and choosing the move that has the highest
- * expected outcome.  Since the Monte Carlo player plays moves randomly,
- * it does not always play the optimal move (see if you can convince yourself about why this is),
- * but is good at strategic play and likes to make threats.
- * 
- * Unlike StupidAI and RandomAI, this AI player's getNextMove function will continues to play
- * random games indefinitely until the terminate flag is set.
- * 
- * @author Leonid Shamis
- */
-public class MonteCarloAI extends AIModule
+public class MiniMaxAI extends AIModule
 {
 	/// Random number generator to play random games.
 	private final Random r = new Random(System.currentTimeMillis());
