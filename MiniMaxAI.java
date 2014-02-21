@@ -1,5 +1,6 @@
 import java.util.Random;
 import java.lang.Math;
+import static java.lang.System.*;
 
 public class MiniMaxAI extends AIModule
 {
@@ -10,13 +11,17 @@ public class MiniMaxAI extends AIModule
 
 	private int maxDepth = 6;
 
-	private int numGames = 10;
+	private int numGames = 2;
+	private int ourPlayer = 0;
+	private int realDepth = 0;
 
 	/// Simulates random games and chooses the move that leads to the highest expected value.
 	@Override
 	public void getNextMove(final GameStateModule state)
 	{
+		ourPlayer = state.getActivePlayer();
 		chosenMove = 0;
+		int realDepth = state.getCoins();
 		chosenMove = miniMax(state);
 	}
 
@@ -34,13 +39,17 @@ public class MiniMaxAI extends AIModule
 		
 	}
 
-	public int minValue(final GameStateModule state, int action)
+	public int minValue(final GameStateModule state, int move)
 	{
 		final GameStateModule game = state.copy();
 
-		game.makeMove(action);
+		game.makeMove(move);
 		if (atTerminal(game))
+		{
+			System.out.println("minValue terminate");
 			return utility(game);
+		}
+			
 		int v = Integer.MAX_VALUE;
 		for(int action = 0; action < state.getWidth(); action++)
 			if (game.canMakeMove(action))
@@ -50,12 +59,18 @@ public class MiniMaxAI extends AIModule
 
 	}
 
-	public int maxValue(final GameStateModule state, int action)
+	public int maxValue(final GameStateModule state, int move)
 	{
 		final GameStateModule game = state.copy();
-		game.makeMove(action);
+
+		game.makeMove(move);
 		if (atTerminal(game))
+		{
+			System.out.println("maxValue terminate");
 			return utility(game);
+
+		}
+			
 
 		int v = -Integer.MAX_VALUE;
 		for(int action = 0; action < state.getWidth(); action++)
@@ -67,16 +82,18 @@ public class MiniMaxAI extends AIModule
 
 	public boolean atTerminal(final GameStateModule state)
 	{
-		return (state.getCoins() == maxDepth);
+		return ((state.getCoins() - realDepth) == maxDepth);
 	}
 
 	public int utility(final GameStateModule state)
 	{
+		
 		int count = 0;
 		for(int i = 0; i< numGames; i++)
 			if(playRandomGame(state) == ourPlayer)
 				count++;
-		return(Math.floor(count / numGames));
+		return((int) Math.floor(count / numGames));
+		
 	}
 
 	/// Returns a random legal move in a given state.
