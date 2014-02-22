@@ -9,14 +9,13 @@ public class MiniMaxAI extends AIModule
 	/// Used as a helper when picking random moves.
 	private int[] moves;
 
-	private int maxDepth = 2;
+	private int maxDepth = 3;
 
 	private int numGames = 2;
 	private int ourPlayer = 0;
 	private int realDepth = 0;
 
-	/// Simulates random games and chooses the move that leads to the highest expected value.
-	@Override
+	/// Simulates random games	@Override
 	public void getNextMove(final GameStateModule state)
 	{
 		ourPlayer = state.getActivePlayer();
@@ -29,13 +28,17 @@ public class MiniMaxAI extends AIModule
 	{
 		final GameStateModule game = state.copy();
 		int max = -Integer.MAX_VALUE;
-
+		int move = 0;
+		int v = 0;
 		//find the maximum utility out of all the possible moves
-		for (int action = 0; action < state.getWidth(); action++)
-			if(minValue(game, action) > max)
-				max = minValue(game, action);
+		for (int action = 0; action < state.getWidth() && !terminate; action++)
+			if((v = minValue(game, action)) > max)
+			{
+				max = v;
+				move = action;
+			}
 
-		return max;
+		return move;
 		
 	}
 
@@ -46,14 +49,20 @@ public class MiniMaxAI extends AIModule
 		game.makeMove(move);
 		if (atTerminal(game))
 		{
-			System.out.println("minValue terminate");
+			//System.out.println("minValue terminate");
 			return utility(game);
 		}
 			
 		int v = Integer.MAX_VALUE;
-		for(int action = 0; action < state.getWidth(); action++)
+		for(int action = 0; action < state.getWidth() && !terminate; action++)
 			if (game.canMakeMove(action))
-				v = ((maxValue(game, action) < v) ? maxValue(game, action) : v);
+			{
+				int t = maxValue(game, action);
+				if(t < v)
+				{
+					v = t;
+				}
+			}
 		return v;
 				
 
@@ -66,18 +75,20 @@ public class MiniMaxAI extends AIModule
 		game.makeMove(move);
 		if (atTerminal(game))
 		{
-			System.out.println("maxValue terminate");
+			//System.out.println("maxValue terminate");
 			return utility(game);
 
 		}
 			
-
 		int v = -Integer.MAX_VALUE;
-		for(int action = 0; action < state.getWidth(); action++)
+		for(int action = 0; action < state.getWidth() && !terminate; action++)
 			if (game.canMakeMove(action))
-				v = ((minValue(game, action) > v) ? minValue(game, action) : v);
+			{
+				int t = minValue(game, action);
+				if(t > v)
+					v = t;
+			}
 		return v;
-
 	}
 
 	public boolean atTerminal(final GameStateModule state)
@@ -87,14 +98,14 @@ public class MiniMaxAI extends AIModule
 
 	public int utility(final GameStateModule state)
 	{
-		return 0;
-		// int count = 0;
-		// for(int i = 0; i< numGames; i++)
-		// 	if(playRandomGame(state) == ourPlayer)
-		// 		count++;
-		// 	else
-		// 		count--;
-		// return((count));
+		// return 0;
+		int count = 0;
+		for(int i = 0; i< numGames && !terminate; i++)
+			if(playRandomGame(state) == ourPlayer)
+				count++;
+			else
+				count--;
+		return((count));
 		
 	}
 
@@ -107,18 +118,21 @@ public class MiniMaxAI extends AIModule
 	 */
 	private int getMove(final GameStateModule state)
 	{
-		return 0;
+		// return 0;
 		// Fill in what moves are legal.
-		// System.out.println("got to getMove");
-		// int numLegalMoves = 0;
-		// for(int i = 0; i < state.getWidth(); ++i)
-		// 	System.out.println("accessed state just fine");
-		// 	if(state.canMakeMove(i))
-		// 		moves[numLegalMoves++] = i;
+		final GameStateModule game = state.copy();
+		System.out.println("got to getMove");
+		int numLegalMoves = 0;
+		for(int i = 0; i < game.getWidth() && !terminate; ++i)
+			{
+			System.out.println("accessed state just fine");
+			if(game.canMakeMove(i))
+				moves[numLegalMoves++] = i;
+		}
 
-		// // Pick one randomly.
-		// final int n = r.nextInt(numLegalMoves);
-		// return moves[n];
+		// Pick one randomly.
+		final int n = r.nextInt(numLegalMoves);
+		return moves[n];
 	}
 
 	// Given the result of the last game, update our chosen move.
@@ -159,13 +173,17 @@ public class MiniMaxAI extends AIModule
 	 */
 	private int playRandomGame(final GameStateModule state)
 	{
-		return 0;
-		// // Duplicate the state to prevent changes from propagating.
-		// final GameStateModule game = state.copy();
-		// while(!game.isGameOver())
-		// 	game.makeMove(getMove(game));
+		// return 0;
+		// Duplicate the state to prevent changes from propagating.
+		final GameStateModule game = state.copy();
+		while(!game.isGameOver())
+		{
+			if(terminate)
+				return 0;
+			game.makeMove(getMove(game));
+		}
 
-		// // It's over!  Return who won.
-		// return game.getWinner();
+		// It's over!  Return who won.
+		return game.getWinner();
 	}
 }

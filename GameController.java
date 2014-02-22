@@ -96,14 +96,14 @@ public final class GameController
 			// Wait until the ai has finished or has timed out
 			t.join(AI_time);
 			// Set the terminate flag so that the AI knows it should wrap up its computations
-			//ai.terminate = true;
-			//if(t.isAlive())
-			// {
-			// 	// Allow 100ms margin before throwing the exception
-			// 	t.join(100);
-			// 	if(t.isAlive())
-			// 		throw new RuntimeException(AIName + " did not terminate when told to do so.");
-			// }
+			ai.terminate = true;
+			if(t.isAlive())
+			{
+				// Allow 100ms margin before throwing the exception
+				t.join(100);
+				if(t.isAlive())
+					throw new RuntimeException(AIName + " did not terminate when told to do so.");
+			}
 			// Get the selected move
 			move = ai.chosenMove;
 		}
