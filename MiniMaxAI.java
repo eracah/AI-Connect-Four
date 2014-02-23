@@ -9,7 +9,7 @@ public class MiniMaxAI extends AIModule
 	/// Used as a helper when picking random moves.
 	private int[] moves;
 
-	private int maxDepth = 3;
+	private int maxDepth = 1;
 
 	private int numGames = 2;
 	private int ourPlayer = 0;
@@ -19,25 +19,48 @@ public class MiniMaxAI extends AIModule
 	public void getNextMove(final GameStateModule state)
 	{
 		ourPlayer = state.getActivePlayer();
-		chosenMove = 6;
+		chosenMove = getFirstLegalMove(state);
+		
 		int realDepth = state.getCoins();
-		chosenMove = miniMax(state);
+		while(!terminate)
+		{
+			chosenMove = miniMax(state);
+			maxDepth++;
+		}
+			
+	}
+
+	public int getFirstLegalMove(final GameStateModule game)
+	{
+			int move = 0;
+			while (!game.canMakeMove(move))
+					move = (move + 1) % game.getWidth();
+			return move;
 	}
 
 	public int miniMax(final GameStateModule state)
 	{
 		final GameStateModule game = state.copy();
-		int max = -Integer.MAX_VALUE;
-		int move = 0;
-		int v = 0;
-		//find the maximum utility out of all the possible moves
-		for (int action = 0; action < state.getWidth() && !terminate; action++)
-			if((v = minValue(game, action)) > max)
-			{
-				max = v;
-				move = action;
-			}
+		int maxUtility = -Integer.MAX_VALUE;
+		int move = getFirstLegalMove(game);
+		
 
+		int utility = 0;
+		//find the maximum utility out of all the possible moves
+		for (int action = 0; (!terminate) && (action < state.getWidth());  action++)
+		{
+			if(game.canMakeMove(action))
+			{
+				utility = maxValue(game, action);
+				if(utility >= maxUtility)
+				{
+					maxUtility = utility;
+					move = action;
+				}
+			}
+		}//for
+
+		
 		return move;
 		
 	}
@@ -48,22 +71,19 @@ public class MiniMaxAI extends AIModule
 
 		game.makeMove(move);
 		if (atTerminal(game))
-		{
-			//System.out.println("minValue terminate");
-			return utility(game);
-		}
+			return getUtility(game);
 			
-		int v = Integer.MAX_VALUE;
+		int minUtility = Integer.MAX_VALUE;
 		for(int action = 0; action < state.getWidth() && !terminate; action++)
 			if (game.canMakeMove(action))
 			{
-				int t = maxValue(game, action);
-				if(t < v)
+				int utility = maxValue(game, action);
+				if(utility <= minUtility)
 				{
-					v = t;
+					minUtility = utility;
 				}
 			}
-		return v;
+		return minUtility;
 				
 
 	}
@@ -76,19 +96,19 @@ public class MiniMaxAI extends AIModule
 		if (atTerminal(game))
 		{
 			//System.out.println("maxValue terminate");
-			return utility(game);
+			return getUtility(game);
 
 		}
 			
-		int v = -Integer.MAX_VALUE;
-		for(int action = 0; action < state.getWidth() && !terminate; action++)
+		int maxUtility = -Integer.MAX_VALUE;
+		for(int action = 0; (action < state.getWidth()) && !terminate; action++)
 			if (game.canMakeMove(action))
 			{
-				int t = minValue(game, action);
-				if(t > v)
-					v = t;
+				int utility = minValue(game, action);
+				if(utility >= maxUtility)
+					maxUtility = utility;
 			}
-		return v;
+		return maxUtility;
 	}
 
 	public boolean atTerminal(final GameStateModule state)
@@ -96,16 +116,24 @@ public class MiniMaxAI extends AIModule
 		return ((state.getCoins() - realDepth) == maxDepth);
 	}
 
-	public int utility(final GameStateModule state)
+	public int getUtility(final GameStateModule state)
 	{
-		// return 0;
-		int count = 0;
-		for(int i = 0; i< numGames && !terminate; i++)
-			if(playRandomGame(state) == ourPlayer)
-				count++;
-			else
-				count--;
-		return((count));
+		int max = 0;
+		int xpos = 0;
+		for (int col = 0; col < state.getWidth(); col ++)
+		{
+			if (state.getHeightAt(col) > max)
+			{
+				max = state.getHeightAt(col);
+				xpos = col;
+			}
+				
+
+		}
+		if (state.getAt(xpos, max) == ourPlayer)
+			return 1;
+		else
+			return -1;
 		
 	}
 
