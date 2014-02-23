@@ -18,15 +18,21 @@ public class MiniMaxAI extends AIModule
 	/// Simulates random games	@Override
 	public void getNextMove(final GameStateModule state)
 	{
+		System.out.println("new turn\n");
+		maxDepth = 1;
 		ourPlayer = state.getActivePlayer();
 		chosenMove = getFirstLegalMove(state);
 		
 		int realDepth = state.getCoins();
-		while(!terminate)
+		while((!terminate) && (maxDepth <= ((state.getWidth() * state.getHeight()) - state.getCoins())))
 		{
+			System.out.println("max depth: " + maxDepth);
+			System.out.println("terminate: " + terminate);
 			chosenMove = miniMax(state);
 			maxDepth++;
+			
 		}
+		System.out.println("terminate: " + terminate);
 			
 	}
 
@@ -51,7 +57,10 @@ public class MiniMaxAI extends AIModule
 		{
 			if(game.canMakeMove(action))
 			{
-				utility = maxValue(game, action);
+				utility = minValue(game, action);
+				System.out.println("utility: " + utility);
+				System.out.println("maxutility: " + maxUtility);
+				System.out.println("action " + action);
 				if(utility >= maxUtility)
 				{
 					maxUtility = utility;
@@ -70,8 +79,18 @@ public class MiniMaxAI extends AIModule
 		final GameStateModule game = state.copy();
 
 		game.makeMove(move);
+		if(game.isGameOver())
+		{
+			if(game.getWinner() == ourPlayer)
+				return 5;
+			else
+				return -5;
+		}
+
 		if (atTerminal(game))
 			return getUtility(game);
+
+		
 			
 		int minUtility = Integer.MAX_VALUE;
 		for(int action = 0; action < state.getWidth() && !terminate; action++)
@@ -93,11 +112,16 @@ public class MiniMaxAI extends AIModule
 		final GameStateModule game = state.copy();
 
 		game.makeMove(move);
+		if(game.isGameOver())
+		{
+			if(game.getWinner() == ourPlayer)
+				return 5;
+			else
+				return -5;
+		}
 		if (atTerminal(game))
 		{
-			//System.out.println("maxValue terminate");
 			return getUtility(game);
-
 		}
 			
 		int maxUtility = -Integer.MAX_VALUE;
@@ -113,7 +137,8 @@ public class MiniMaxAI extends AIModule
 
 	public boolean atTerminal(final GameStateModule state)
 	{
-		return ((state.getCoins() - realDepth) == maxDepth);
+		return ( ( (state.getCoins() - realDepth) == maxDepth) || 
+		(state.getCoins() == (state.getWidth() * state.getHeight())));
 	}
 
 	public int getUtility(final GameStateModule state)
