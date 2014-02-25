@@ -102,6 +102,7 @@ public class MiniMaxAI extends AIModule
 					minUtility = utility;
 				}
 			}
+		System.out.println("Min eval: " + eval(state));
 		return minUtility;
 				
 
@@ -132,6 +133,8 @@ public class MiniMaxAI extends AIModule
 				if(utility >= maxUtility)
 					maxUtility = utility;
 			}
+
+		System.out.println("Max eval: " + eval(state));
 		return maxUtility;
 	}
 
@@ -171,14 +174,13 @@ public class MiniMaxAI extends AIModule
 	 */
 	private int getMove(final GameStateModule state)
 	{
-		// return 0;
 		// Fill in what moves are legal.
 		final GameStateModule game = state.copy();
-		System.out.println("got to getMove");
+		//System.out.println("got to getMove");
 		int numLegalMoves = 0;
 		for(int i = 0; i < game.getWidth() && !terminate; ++i)
 			{
-			System.out.println("accessed state just fine");
+			//System.out.println("accessed state just fine");
 			if(game.canMakeMove(i))
 				moves[numLegalMoves++] = i;
 		}
@@ -238,5 +240,76 @@ public class MiniMaxAI extends AIModule
 
 		// It's over!  Return who won.
 		return game.getWinner();
+	}
+
+	private int eval(final GameStateModule state)
+	{
+		//System.out.println("Entered eval");
+		int totalPoints = 0;
+		for(int i = 0; i < state.getWidth(); i++) //iterates across board
+		{
+			int y = state.getHeightAt(i);		//iterates up a column of pieces
+			for(int j = 0; j < y; j++)
+			{
+				if(state.getAt(i, j) == ourPlayer)	//if one of our pieces is found check its point potential with score function
+				{
+					totalPoints += score(i, j, state);
+				}
+			}
+		}
+	System.out.println("Score: " + totalPoints);
+	return totalPoints;
+	}
+
+	private int score(int x, int y, final GameStateModule state)
+	{
+		int sum = 0;
+		for(int i = 0; i < 2; i++)
+		{
+			for(int j = -1; j< 2; j++)
+			{
+				if(i == 0 && j == 0)
+					continue;
+				sum += check(i, j, x, y, state); // check up
+
+			}
+
+		}
+	return sum;
+	}
+
+	private boolean checkBounds(int x, int y, GameStateModule state)
+	{
+		return (x < state.getWidth() && x >=0 && y < state.getHeight() && y >= 0);
+	}
+	private int check(int xIncrement, int yIncrement, int x, int y, final GameStateModule state)
+	{
+		int ourPieces = 0;
+		int blanks = 0;
+
+		x += xIncrement;
+		y += yIncrement;
+		int counter = 0;
+		while (checkBounds( x, y, state) && counter < 3) // record four spaces or until ceiling is reached
+		{
+
+			int whatsThere = state.getAt(x, y);
+			if(whatsThere != ourPlayer)
+			{
+				return 0;
+			}
+
+			blanks += 1 * ((whatsThere == 0) ? 1 : 0); //if space is blank, increment blanks counter
+			ourPieces += 1 * ((whatsThere == ourPlayer) ? 1 : 0); //if our piece, increment counter
+			x += xIncrement;
+			y += yIncrement;
+			counter++;
+		}
+		return points(ourPieces, blanks);
+	}
+
+	private int points(int ourPieces, int blanks)
+	{
+		return (ourPieces * ((ourPieces + blanks == 3) ? 1 : 0));
 	}
 }
