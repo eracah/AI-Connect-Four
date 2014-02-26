@@ -110,7 +110,7 @@ public class MiniMaxAI extends AIModule
 	public int maxValue(final GameStateModule state, int move)
 	{
 		int maxUtility = -Integer.MAX_VALUE;
-		final GameStateModule game = state.copy();
+		final GameStateModule game = state.copy(); 
 
 		game.makeMove(move);
 		if(game.isGameOver())
