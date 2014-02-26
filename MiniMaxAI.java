@@ -34,8 +34,8 @@ public class MiniMaxAI extends AIModule
 			maxDepth++;
 			
 		}
-		System.out.println("terminate: " + terminate);
-		System.out.println("GetNextMove eval: " + getUtility(state));
+		//System.out.println("terminate: " + terminate);
+		//System.out.println("GetNextMove eval: " + getUtility(state));
 	}
 
 	public int getFirstLegalMove(final GameStateModule game)
@@ -61,6 +61,7 @@ public class MiniMaxAI extends AIModule
 			if(game.canMakeMove(action))
 			{
 				tempUtilities[action] = minValue(game, action);
+				System.out.println(" action " + action + " utility " + tempUtilities[action]);
 				
 			}
 		}//for
@@ -69,8 +70,10 @@ public class MiniMaxAI extends AIModule
 			utilities = tempUtilities;
 
 		maxMove = getMaxMove(utilities, state);
+		maxUtility = utilities[maxMove];
+		System.out.println(" max move " + maxMove + " maxUtility " + maxUtility);
 
-
+		System.out.println("\n\n__________________________\n\n");
 
 		
 		return maxMove;
