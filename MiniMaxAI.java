@@ -18,7 +18,6 @@ public class MiniMaxAI extends AIModule
 	/// Simulates random games	@Override
 	public void getNextMove(final GameStateModule state)
 	{
-		System.out.println("GetNextMove eval: " + eval(state));
 		//System.out.println("new turn\n");
 		maxDepth = 1;
 		ourPlayer = state.getActivePlayer();
@@ -34,7 +33,7 @@ public class MiniMaxAI extends AIModule
 			
 		}
 		System.out.println("terminate: " + terminate);
-			
+		System.out.println("GetNextMove eval: " + getUtility(state));
 	}
 
 	public int getFirstLegalMove(final GameStateModule game)
@@ -84,9 +83,9 @@ public class MiniMaxAI extends AIModule
 		if(game.isGameOver())
 		{
 			if(game.getWinner() == ourPlayer)
-				return 5;
+				return 500;
 			else
-				return -5;
+				return -500;
 		}
 
 		if (atTerminal(game))
@@ -103,7 +102,6 @@ public class MiniMaxAI extends AIModule
 				}
 			}
 
-		// System.out.println("Min eval: " + eval(state));
 		return minUtility;
 				
 
@@ -118,9 +116,9 @@ public class MiniMaxAI extends AIModule
 		if(game.isGameOver())
 		{
 			if(game.getWinner() == ourPlayer)
-				return 5;
+				return 500;
 			else
-				return -5;
+				return -500;
 		}
 		if (atTerminal(game))
 		{
@@ -135,7 +133,6 @@ public class MiniMaxAI extends AIModule
 					maxUtility = utility;
 			}
 
-		// System.out.println("Max eval: " + eval(state));
 		return maxUtility;
 	}
 
@@ -147,22 +144,8 @@ public class MiniMaxAI extends AIModule
 
 	public int getUtility(final GameStateModule state)
 	{
-		int max = 0;
-		int xpos = 0;
-		for (int col = 0; col < state.getWidth(); col ++)
-		{
-			if (state.getHeightAt(col) > max)
-			{
-				max = state.getHeightAt(col);
-				xpos = col;
-			}
-				
-
-		}
-		if (state.getAt(xpos, max) == ourPlayer)
-			return 1;
-		else
-			return -1;
+		int opponent = ((ourPlayer == 1) ? 2 : 1);
+		return eval(state, ourPlayer) - eval(state, opponent);
 		
 	}
 
@@ -243,7 +226,7 @@ public class MiniMaxAI extends AIModule
 		return game.getWinner();
 	}
 
-	private int eval(final GameStateModule state)
+	private int eval(final GameStateModule state, int player)
 	{
 		//System.out.println("Entered eval");
 		int totalPoints = 0;
@@ -252,9 +235,9 @@ public class MiniMaxAI extends AIModule
 			int y = state.getHeightAt(i);		//iterates up a column of pieces
 			for(int j = 0; j < y; j++)
 			{
-				if(state.getAt(i, j) == ourPlayer)	//if one of our pieces is found check its point potential with score function
+				if(state.getAt(i, j) == player)	//if one of our pieces is found check its point potential with score function
 				{
-					totalPoints += score(i, j, state);
+					totalPoints += score(i, j, state, player);
 				}
 			}
 		}
@@ -262,16 +245,16 @@ public class MiniMaxAI extends AIModule
 	return totalPoints;
 	}
 
-	private int score(int x, int y, final GameStateModule state)
+	private int score(int x, int y, final GameStateModule state, int player)
 	{
 		int sum = 0;
-		for(int i = 0; i < 2; i++)
+		for(int i = -1; i < 2; i++)
 		{
 			for(int j = -1; j< 2; j++)
 			{
 				if(i == 0 && j == 0)
 					continue;
-				sum += check(i, j, x, y, state); // check up
+				sum += check(i, j, x, y, state, player); // check up
 
 			}
 
@@ -283,7 +266,7 @@ public class MiniMaxAI extends AIModule
 	{
 		return (x < state.getWidth() && x >=0 && y < state.getHeight() && y >= 0);
 	}
-	private int check(int xIncrement, int yIncrement, int x, int y, final GameStateModule state)
+	private int check(int xIncrement, int yIncrement, int x, int y, final GameStateModule state, int player)
 	{
 		int ourPieces = 0;
 		int blanks = 0;
@@ -295,22 +278,25 @@ public class MiniMaxAI extends AIModule
 		{
 
 			int whatsThere = state.getAt(x, y);
-			if(whatsThere != ourPlayer)
+			if(whatsThere == player || whatsThere == 0)
 			{
-				return 0;
+				blanks += 1 * ((whatsThere == 0) ? 1 : 0); //if space is blank, increment blanks counter
+				ourPieces += 1 * ((whatsThere == player) ? 1 : 0); //if our piece, increment counter
+				x += xIncrement;
+				y += yIncrement;
+				counter++;
 			}
 
-			blanks += 1 * ((whatsThere == 0) ? 1 : 0); //if space is blank, increment blanks counter
-			ourPieces += 1 * ((whatsThere == ourPlayer) ? 1 : 0); //if our piece, increment counter
-			x += xIncrement;
-			y += yIncrement;
-			counter++;
+			else
+				return 0; //case where piece is other players
 		}
 		return points(ourPieces, blanks);
 	}
 
 	private int points(int ourPieces, int blanks)
 	{
-		return (ourPieces * ((ourPieces + blanks == 3) ? 1 : 0));
+		System.out.println("ourPieces: " + ourPieces + " blanks " + blanks);
+		System.out.println("points fn returns: " + (ourPieces + 1) * ((ourPieces + blanks == 3) ? 1 : 0));
+		return ((ourPieces + 1) * ((ourPieces + blanks == 3) ? 1 : 0));
 	}
 }
