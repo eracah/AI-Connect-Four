@@ -15,9 +15,12 @@ public class MiniMaxAI extends AIModule
 	private int ourPlayer = 0;
 	private int realDepth = 0;
 
+	public int[] utilities;
+
 	/// Simulates random games	@Override
 	public void getNextMove(final GameStateModule state)
 	{
+		utilities = new int[state.getWidth()];
 		//System.out.println("new turn\n");
 		maxDepth = 1;
 		ourPlayer = state.getActivePlayer();
@@ -26,8 +29,7 @@ public class MiniMaxAI extends AIModule
 		realDepth = state.getCoins();
 		while((!terminate) && (maxDepth <= ((state.getWidth() * state.getHeight()) - state.getCoins())))
 		{
-			// System.out.println("max depth: " + maxDepth);
-			// System.out.println("terminate: " + terminate);
+			
 			chosenMove = miniMax(state);
 			maxDepth++;
 			
@@ -48,30 +50,56 @@ public class MiniMaxAI extends AIModule
 	{
 		final GameStateModule game = state.copy();
 		int maxUtility = -Integer.MAX_VALUE;
-		int move = getFirstLegalMove(game);
+		int maxMove = getFirstLegalMove(game);
 		
 
-		int utility = 0;
+		int[] tempUtilities = new int[state.getWidth()];
+
 		//find the maximum utility out of all the possible moves
 		for (int action = 0; (!terminate) && (action < state.getWidth());  action++)
 		{
 			if(game.canMakeMove(action))
 			{
-				utility = minValue(game, action);
-				// System.out.println("utility: " + utility);
-				// System.out.println("maxutility: " + maxUtility);
-				// System.out.println("action " + action);
-				if(utility >= maxUtility)
-				{
-					maxUtility = utility;
-					move = action;
-				}
+				tempUtilities[action] = minValue(game, action);
+				
 			}
 		}//for
 
+		if(!terminate)
+			utilities = tempUtilities;
+
+		maxMove = getMaxMove(utilities, state);
+
+
+
 		
-		return move;
+		return maxMove;
 		
+	}
+
+	public int getMaxMove(int[] utilities, final GameStateModule state)
+	{
+		int maxUtility = -Integer.MAX_VALUE;
+		int maxMove = 0;
+
+		for (int move = 0; move < state.getWidth(); move ++)
+		{
+			if(utilities[move] > maxUtility)
+				if(state.canMakeMove(move))
+				{
+					maxMove = move;
+					maxUtility = utilities[move];
+				}
+		}
+		return maxMove;
+	}
+
+	public int getEndGameScore(final GameStateModule state)
+	{
+		if(state.getWinner() == ourPlayer)
+				return 500 / state.getCoins();
+			else
+				return -500 / state.getCoins();
 	}
 
 	public int minValue(final GameStateModule state, int move)
@@ -82,10 +110,7 @@ public class MiniMaxAI extends AIModule
 		game.makeMove(move);
 		if(game.isGameOver())
 		{
-			if(game.getWinner() == ourPlayer)
-				return 500;
-			else
-				return -500;
+			return getEndGameScore(game);
 		}
 
 		if (atTerminal(game))
@@ -115,10 +140,7 @@ public class MiniMaxAI extends AIModule
 		game.makeMove(move);
 		if(game.isGameOver())
 		{
-			if(game.getWinner() == ourPlayer)
-				return 500;
-			else
-				return -500;
+			return getEndGameScore(game);
 		}
 		if (atTerminal(game))
 		{
@@ -295,8 +317,8 @@ public class MiniMaxAI extends AIModule
 
 	private int points(int ourPieces, int blanks)
 	{
-		System.out.println("ourPieces: " + ourPieces + " blanks " + blanks);
-		System.out.println("points fn returns: " + (ourPieces + 1) * ((ourPieces + blanks == 3) ? 1 : 0));
+		//System.out.println("ourPieces: " + ourPieces + " blanks " + blanks);
+		//System.out.println("points fn returns: " + (ourPieces + 1) * ((ourPieces + blanks == 3) ? 1 : 0));
 		return ((ourPieces + 1) * ((ourPieces + blanks == 3) ? 1 : 0));
 	}
 }
