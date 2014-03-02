@@ -11,7 +11,7 @@ public class MiniMaxAI extends AIModule
 
 	private int maxDepth = 1;
 
-	private int numGames = 2;
+
 	private int ourPlayer = 0;
 	private int realDepth = 0;
 
@@ -34,8 +34,7 @@ public class MiniMaxAI extends AIModule
 			maxDepth++;
 			
 		}
-		//System.out.println("terminate: " + terminate);
-		//System.out.println("GetNextMove eval: " + getUtility(state));
+		
 	}
 
 	public int getFirstLegalMove(final GameStateModule game)
@@ -51,7 +50,7 @@ public class MiniMaxAI extends AIModule
 		final GameStateModule game = state.copy();
 		int maxUtility = -Integer.MAX_VALUE;
 		int maxMove = getFirstLegalMove(game);
-		
+		int moveUtility;
 
 		int[] tempUtilities = new int[state.getWidth()];
 
@@ -60,20 +59,33 @@ public class MiniMaxAI extends AIModule
 		{
 			if(game.canMakeMove(action))
 			{
-				tempUtilities[action] = minValue(game, action);
-				System.out.println(" action " + action + " utility " + tempUtilities[action]);
+				moveUtility = minValue(game, action);
+				tempUtilities[action] = moveUtility;
+				if(moveUtility > maxUtility)
+				{
+					maxUtility = moveUtility;
+					maxMove = action;
+				}
+				//System.out.println(" action " + action + " utility " + tempUtilities[action]);
 				
 			}
 		}//for
 
-		if(!terminate)
+		if(!terminate) // no interreuption, so overwrite utilities and no need to change maxMove
+		{
 			utilities = tempUtilities;
 
-		maxMove = getMaxMove(utilities, state);
-		maxUtility = utilities[maxMove];
-		System.out.println(" max move " + maxMove + " maxUtility " + maxUtility);
+		}
+		else // for loop interrupted, so get best move from previous array
+		{
+			maxMove = getMaxMove(utilities, state);
+			maxUtility = utilities[maxMove];
+		}
 
-		System.out.println("\n\n__________________________\n\n");
+			
+		//System.out.println(" max move " + maxMove + " maxUtility " + maxUtility);
+
+		//System.out.println("\n\n__________________________\n\n");
 
 		
 		return maxMove;
@@ -97,13 +109,7 @@ public class MiniMaxAI extends AIModule
 		return maxMove;
 	}
 
-	public int getEndGameScore(final GameStateModule state)
-	{
-		if(state.getWinner() == ourPlayer)
-				return 500 / state.getCoins();
-			else
-				return -500 / state.getCoins();
-	}
+	
 
 	public int minValue(final GameStateModule state, int move)
 	{
@@ -125,9 +131,8 @@ public class MiniMaxAI extends AIModule
 			{
 				int utility = maxValue(game, action);
 				if(utility <= minUtility)
-				{
 					minUtility = utility;
-				}
+				
 			}
 
 		return minUtility;
@@ -165,6 +170,16 @@ public class MiniMaxAI extends AIModule
 	{
 		return ( ( (state.getCoins() - realDepth) == maxDepth) || 
 		(state.getCoins() == (state.getWidth() * state.getHeight())));
+	}
+
+	public int getEndGameScore(final GameStateModule state)
+	{
+		if(state.getWinner() == ourPlayer)
+				return 500 / (state.getCoins()- realDepth);
+		else if(state.getWinner() == 0)
+				return 0;
+		else
+				return -500 / (state.getCoins()- realDepth);
 	}
 
 	public int getUtility(final GameStateModule state)
