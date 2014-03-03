@@ -333,7 +333,10 @@ public class MiniMaxAI extends AIModule
 				if(whatsThere == 0)
 				{
 					blanks += 1;
-					accessiblePoints += 1; // not sure how to weight this, tweak this later
+					if(accessible(x, y, state))
+					{
+						accessiblePoints += 1; // not sure how to weight this, tweak this later
+					} // not sure how to weight this, tweak this later
 				}
 				//blanks += 1 * ((whatsThere == 0) ? 1 : 0); //if space is blank, increment blanks counter
 				ourPieces += 1 * ((whatsThere == player) ? 1 : 0); //if our piece, increment counter
