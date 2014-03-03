@@ -34,7 +34,7 @@ public class AlphaBetaAI extends AIModule
 			maxDepth++;
 			
 		}
-		
+		System.out.println(maxDepth);
 	}
 
 
