@@ -266,6 +266,16 @@ public class MiniMaxAI extends AIModule
 		return game.getWinner();
 	}
 
+	private boolean accessible(int x, int y, GameStateModule state)
+	{
+		if((state.getAt(x, (y - 1)) != 0) || (y == 0))//there is a piece underneath or its the bottom of the board
+		{
+			return true;
+		}
+
+		else
+			return false;
+	}
 	private int eval(final GameStateModule state, int player)
 	{
 		//System.out.println("Entered eval");
@@ -310,7 +320,7 @@ public class MiniMaxAI extends AIModule
 	{
 		int ourPieces = 0;
 		int blanks = 0;
-
+		int accessiblePoints = 0;
 		x += xIncrement;
 		y += yIncrement;
 		int counter = 0;
@@ -320,7 +330,12 @@ public class MiniMaxAI extends AIModule
 			int whatsThere = state.getAt(x, y);
 			if(whatsThere == player || whatsThere == 0)
 			{
-				blanks += 1 * ((whatsThere == 0) ? 1 : 0); //if space is blank, increment blanks counter
+				if(whatsThere == 0)
+				{
+					blanks += 1;
+					accessiblePoints += 1; // not sure how to weight this, tweak this later
+				}
+				//blanks += 1 * ((whatsThere == 0) ? 1 : 0); //if space is blank, increment blanks counter
 				ourPieces += 1 * ((whatsThere == player) ? 1 : 0); //if our piece, increment counter
 				x += xIncrement;
 				y += yIncrement;
@@ -330,7 +345,7 @@ public class MiniMaxAI extends AIModule
 			else
 				return 0; //case where piece is other players
 		}
-		return points(ourPieces, blanks);
+		return (accessiblePoints + points(ourPieces, blanks));
 	}
 
 	private int points(int ourPieces, int blanks)
